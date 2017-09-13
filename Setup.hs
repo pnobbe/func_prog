@@ -30,21 +30,25 @@ exercise = parseTable >>> select "gender" "male"
 -- * Exercise 1
 
 parseTable :: [String] -> Table
-parseTable s =
- do putStrLn show Table
- Table []
+parseTable s
+  | null s = return []
+  | otherwise = map $ words s
+
 
 -- | Printing
 
 -- * Exercise 2
 
 printLine :: [Int] -> String
-printLine = undefined
+printLine xs
+  | null xs = return []
+  | otherwise = putStrLn . concat $ (map (\i -> ["+"] ++ replicate i "-") xs) ++ ["+"]
 
 -- * Exercise 3
 
 printField :: Int -> String -> String
 printField = undefined
+
 -- * Exercise 4
                
 printRow :: [(Int, String)] -> String
