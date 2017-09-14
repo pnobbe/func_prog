@@ -30,9 +30,8 @@ exercise = parseTable >>> select "gender" "male"
 -- * Exercise 1
 
 parseTable :: [String] -> Table
-parseTable s
-  | null s = return []
-  | otherwise = map $ words s
+parseTable s | null s = []
+             | otherwise = map words s
 
 
 -- | Printing
@@ -40,14 +39,14 @@ parseTable s
 -- * Exercise 2
 
 printLine :: [Int] -> String
-printLine xs
-  | null xs = return []
-  | otherwise = putStrLn . concat $ (map (\i -> ["+"] ++ replicate i "-") xs) ++ ["+"]
+printLine xs | null xs = []
+             | otherwise = concat $ "+" : [ replicate x "-" ++ "+" | x <- xs ]
 
 -- * Exercise 3
 
 printField :: Int -> String -> String
-printField = undefined
+printField n s | all (\x -> isDigit x) s = concat $ replicate (n - length s) " " : s
+               | otherwise               = concat $ s : replicate (n - length s) " "
 
 -- * Exercise 4
                
