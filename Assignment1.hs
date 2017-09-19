@@ -29,23 +29,21 @@ exercise = parseTable >>> select "gender" "male" >>> project ["last", "first", "
 -- * Exercise 1
 
 parseTable :: [String] -> Table
-parseTable s | null s    = []
-             | otherwise = map words s
+parseTable = map words
 
 
 -- | Printing
 
 -- * Exercise 2
 
-printLine :: [Int] -> String -- Opinions?
-printLine xs | null xs   = []
-             | otherwise = concat $ "+" : [ replicate x '-' ++ "+" | x <- xs ]
+printLine :: [Int] -> String
+printLine xs = foldr (++) "+" [ "+" ++ replicate x '-' | x <- xs ]
 
 -- * Exercise 3
 
 printField :: Int -> String -> String
 printField n s | all isDigit s = spaces ++ s
-               | otherwise               = s ++ spaces
+               | otherwise     = s ++ spaces
                where spaces = replicate (n - length s) ' '
 
 -- * Exercise 4
