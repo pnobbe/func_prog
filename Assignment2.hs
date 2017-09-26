@@ -89,29 +89,40 @@ diagonals ((a1, _, c2),(_, b, _),(c1, _, a2)) = ((a1, b, a2), (c1, b, c2))
 
 emptyBoard :: Board
 emptyBoard = (row, row, row)
-          where row = (B,B,B)
+        where row = (B,B,B)
 
 -- Exercise 7
 
 printBoard :: Board -> String
 printBoard (a, b, c) = printRow a ++ line ++ printRow b ++ line ++ printRow c
-  where line = "-+-+- \n"
-        printRow (a, b, c) = show a ++ "|" ++ show b ++ "|" ++ show c ++ " \n"
+          where line               = "-+-+- \n"
+                printRow (a, b, c) = show a ++ "|" ++ show b ++ "|" ++ show c ++ " \n"
 
 
 -- | Move generation
-             
+
+boardToList :: Board -> [Field]
+boardToList ((a,b,c), (d,e,f), (g,h,i)) = [a,b,c,d,e,f,g,h,i]
+
+listToBoard :: [Field] -> Board
+listToBoard [a,b,c,d,e,f,g,h,i] = ((a,b,c), (d,e,f), (g,h,i))
+
 -- Exercise 8
-             
+
 moves :: Player -> Board -> [Board]
-moves p b = map (\(a, b, c) -> )
+moves p b = map listToBoard $ catMaybes [boardSet i | i <- [0..8]]
+                where (new, lboard) = (symbol p, boardToList b)
+                      boardSet i = case splitAt i lboard of
+                                        (start, B:end) -> Just (start ++ [new] ++ end)
+                                        _              -> Nothing
+
 
 -- | Gametree generation
 
 -- Exercise 9
 
 hasWinner :: Board -> Maybe Player
-hasWinner = undefined
+hasWinner ((a,b,c), (d,e,f), (g,h,i)) = ( a == b && b == c) || (d == e && e == f) || (g == h && h == i)
 
 -- Exercise 10
 
