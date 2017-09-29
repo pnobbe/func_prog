@@ -11,8 +11,6 @@
 module Assignment2 where -- Rename to "Main" if you want to compile the game.
                          -- Don't forget to rename it back when submitting!
 
-import Control.Monad
-
 import Data.Char
 import Data.List
 import Data.Maybe
@@ -80,10 +78,10 @@ type Board = (Row, Row, Row)
 -- Exercise 5
 
 verticals :: Board -> (Row, Row, Row)
-verticals ((a1, b1, c1),(a2, b2, c2),(a3, b3, c3)) = ((a1, a2, a3),(b1, b2, b3),(c1, c2, c3))
+verticals ((a1, a2, a3),(b1, b2, b3),(c1, c2, c3)) = ((a1, b1, c1),(a2, b2, c2),(a3, b3, c3))
 
 diagonals :: Board -> (Row, Row)
-diagonals ((a1, _, c2),(_, b, _),(c1, _, a2)) = ((a1, b, a2), (c1, b, c2))
+diagonals ((a1, _, c2),(_, b, _),(c1, _, a2)) = ((a1, b, a2), (c2, b, c1))
 
 -- Exercise 6
 
@@ -95,8 +93,8 @@ emptyBoard = (row, row, row)
 
 printBoard :: Board -> String
 printBoard (a, b, c) = printRow a ++ line ++ printRow b ++ line ++ printRow c
-          where line               = "-+-+- \n"
-                printRow (a, b, c) = show a ++ "|" ++ show b ++ "|" ++ show c ++ " \n"
+          where line               = "-+-+-\n"
+                printRow (d, e, f) = show d ++ "|" ++ show e ++ "|" ++ show f ++ "\n"
 
 
 -- | Move generation
@@ -122,43 +120,95 @@ moves p b = map listToBoard $ catMaybes [boardSet i | i <- [0..8]]
 -- Exercise 9
 
 hasWinner :: Board -> Maybe Player
-hasWinner ((a,b,c), (d,e,f), (g,h,i)) = ( a == b && b == c) || (d == e && e == f) || (g == h && h == i)
+hasWinner b | ((X,X,X),_,_) <- b            = Just P1
+            | (_,(X,X,X),_) <- b            = Just P1
+            | (_,_,(X,X,X)) <- b            = Just P1
+            | ((X,X,X),_,_) <- verticals b  = Just P1
+            | (_,(X,X,X),_) <- verticals b  = Just P1
+            | (_,_,(X,X,X)) <- verticals b  = Just P1
+            | ((X,X,X),_)   <- diagonals b  = Just P1
+            | (_,(X,X,X))   <- diagonals b  = Just P1
+            | ((O,O,O),_,_) <- b            = Just P2
+            | (_,(O,O,O),_) <- b            = Just P2
+            | (_,_,(O,O,O)) <- b            = Just P2
+            | ((O,O,O),_,_) <- verticals b  = Just P2
+            | (_,(O,O,O),_) <- verticals b  = Just P2
+            | (_,_,(O,O,O)) <- verticals b  = Just P2
+            | ((O,O,O),_)   <- diagonals b  = Just P2
+            | (_,(O,O,O))   <- diagonals b  = Just P2
+            | otherwise                     = Nothing
+
+
 
 -- Exercise 10
 
 gameTree :: Player -> Board -> Rose Board
-gameTree = undefined
+gameTree p b
+        | hasWinner b <= Nothing = b :> [ gameTree (nextPlayer p) board | board <- moves p b ]
+        | otherwise              = b :> []
 
 -- | Game complexity
 
 -- Exercise 11
 
 gameTreeComplexity :: Int
-gameTreeComplexity = undefined
+gameTreeComplexity = leaves $ gameTree P1 ((B,B,B),(B,B,B),(B,B,B))
 
 -- | Minimax
 
 -- Exercise 12
 
 minimax :: Player -> Rose Board -> Rose Int
-minimax = undefined
+minimax p (r :> [])
+                | hasWinner r == Just p              = 1    :> []
+                | hasWinner r == Just (nextPlayer p) = (-1) :> []
+                | otherwise                          = 0    :> []
+
+minimax p (_ :> rs)     = maximum' [root x | x <- xs] :> xs
+           where xs     = [ minimax' (nextPlayer p) b | b <- rs ]
+
+
+minimax' p (r :> [])
+                | hasWinner r == Just p              = (-1) :> []
+                | hasWinner r == Just (nextPlayer p) = 1   :> []
+                | otherwise                          = 0  :> []
+
+minimax' p (_ :> rs)    = minimum' [root x | x <- xs] :> xs
+           where xs     = [ minimax (nextPlayer p) b | b <- rs ]
+
 
 -- * Lazier minimum and maximums
 
 -- Exercise 13
 
 minimum' :: [Int] -> Int
-minimum' = undefined
+minimum' []  = error "empty list"
+minimum' [x] = x
+minimum' (x:y:xs)
+    | x   == -1 = -1
+    | otherwise = minimum' ((if x < y then x else y):xs)
 
 maximum' :: [Int] -> Int
-maximum' = undefined
+maximum' []  = error "empty list"
+maximum' [x] = x
+maximum' (x:y:xs)
+    | x == 1    = 1
+    | otherwise = maximum' ((if x > y then x else y):xs)
+
 
 -- | Gameplay
 
 -- Exercise 14
 
 makeMove :: Player -> Board -> Maybe Board
-makeMove = undefined
+makeMove p b
+        | isJust (hasWinner b)   = Nothing
+        | isNothing index  = Nothing
+        | otherwise = Just $ root (children (gameTree p b) !! fromJust index )
+          where findOptimal  = minimax p (gameTree p b)
+                index = root findOptimal `elemIndex` map root (children findOptimal)
+
+
 
 -- | Main
 
@@ -214,9 +264,9 @@ main = do
         listMoves = intercalate "\n"
                     . map (intercalate "    ")
                     . transpose
-                    . map lines
-                    . map (\(i,b) -> "(" ++ show i ++ "): \n" ++ printBoard b) 
+                    . map (lines . (\ (i, b) -> "(" ++ show i ++ "): \n" ++ printBoard b))
                     . zip [1 :: Integer ..]
+
 
     gameLoop P1 emptyBoard
 
