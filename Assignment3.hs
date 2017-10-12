@@ -61,8 +61,8 @@ instance Foldable Rose where
 -- * Exercise 5
 
 fsum, fproduct :: (Foldable f, Num a) => f a -> a
-fsum = foldl (+) 0
-fproduct = undefined
+fsum     = unSum     . foldMap (\x -> (Sum x))
+fproduct = unProduct . foldMap (\x -> (Product x))
 
 -- | Poker
 
